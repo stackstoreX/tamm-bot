@@ -1,3 +1,5 @@
+import nest_asyncio
+nest_asyncio.apply()
 import sqlite3
 import html
 import logging
@@ -196,12 +198,12 @@ def init_db():
     defaults = [
         ('wallet_number', WALLET_NUMBER),
         ('wallet_name', WALLET_NAME),
-        ('usdt_address', 'YOUR_USDT_TRC20_ADDRESS_HERE'),
-        ('support_username', '@SupportUsername'),
-        ('bot_name', 'DigitalHub'),
+        ('usdt_address', '1267938246'),
+        ('support_username', '@m_f0den'),
+        ('bot_name', 'Tamm Shop'),
         ('welcome_message', 'أهلاً بيك في المتجر!'),
         ('maintenance_mode', '0'),
-        ('min_recharge', '10'),
+        ('min_recharge', '5'),
         ('min_order', '5'),
         ('usd_rate', '50'),
     ]
@@ -820,13 +822,13 @@ async def create_fawaterk_invoice(token, amount, description, user, payment_meth
             "customer": {
                 "first_name": f"User{user.id}",
                 "last_name": "Client",
-                "email": f"user{user.id}@digitalhub.bot",
+                "email": f"user{user.id}@Tamm Shop.bot",
                 "phone": get_setting("wallet_number", WALLET_NUMBER)
             },
             "redirectionUrls": {
-                "successUrl": "https://t.me/DigitalHubBot",
-                "failUrl": "https://t.me/DigitalHubBot",
-                "pendingUrl": "https://t.me/DigitalHubBot"
+                "successUrl": "https://t.me/Tamm ShopBot",
+                "failUrl": "https://t.me/Tamm ShopBot",
+                "pendingUrl": "https://t.me/Tamm ShopBot"
             },
             "cartItems": [
                 {
@@ -866,16 +868,37 @@ async def check_fawaterk_invoice(token, invoice_id):
 
 # ==================== ENHANCED KEYBOARDS ====================
 def main_menu_keyboard(user_id=None):
+    """كيبورد سفلي مبسط — زرين فقط"""
     rows = [
-        ["المنتجات 🛍"],
-        ["طلباتي 🛒", "حسابي 👤"],
-        ["شحن رصيد 💳"],
-        ["الكوبونات 🎟", "📖 شرح البوت"],
-        ["الدعم 💬"],
+        ["🏠 الرئيسية", "🛍 المنتجات"],
     ]
     if user_id and (is_admin(user_id) or is_admin_session_active(user_id)):
         rows.append(["🔐 لوحة التحكم المتقدمة"])
     return ReplyKeyboardMarkup(rows, resize_keyboard=True)
+
+
+def main_inline_menu_keyboard(user_id):
+    """القائمة الرئيسية التفاعلية (Inline)"""
+    buttons = [
+        [InlineKeyboardButton("🛍 تصفح المنتجات", callback_data="browse_products")],
+        [InlineKeyboardButton("🛒 طلباتي", callback_data="my_orders"),
+         InlineKeyboardButton("💰 محفظتي", callback_data="my_wallet")],
+        [InlineKeyboardButton("💳 شحن رصيد", callback_data="recharge_balance"),
+         InlineKeyboardButton("🎟 الكوبونات", callback_data="my_coupons")],
+        [InlineKeyboardButton("💬 الدعم الفني", callback_data="support"),
+         InlineKeyboardButton("📖 شرح البوت", callback_data="tutorial")],
+    ]
+    return InlineKeyboardMarkup(buttons)
+
+
+def wallet_inline_keyboard():
+    """أزرار تفاعلية لطرق الشحن في المحفظة"""
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton("🏦 محفظة إلكترونية (يدوي)", callback_data="recharge_manual_wallet")],
+        [InlineKeyboardButton("🅱️ بينانس (USDT)", callback_data="recharge_binance")],
+        [InlineKeyboardButton("⬅️ رجوع للقائمة الرئيسية", callback_data="main_menu")],
+    ])
+
 
 def admin_dashboard_keyboard():
     return InlineKeyboardMarkup([
@@ -893,6 +916,7 @@ def admin_dashboard_keyboard():
         [InlineKeyboardButton("🚪 خروج من لوحة التحكم", callback_data="admin_exit")],
     ])
 
+
 def admin_products_menu_keyboard():
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("➕ إضافة منتج", callback_data="admin_add_product")],
@@ -904,6 +928,7 @@ def admin_products_menu_keyboard():
         [InlineKeyboardButton("⬅️ رجوع", callback_data="admin_back")],
     ])
 
+
 def admin_users_menu_keyboard():
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("👥 قائمة المستخدمين", callback_data="admin_list_users")],
@@ -913,6 +938,7 @@ def admin_users_menu_keyboard():
         [InlineKeyboardButton("📊 إحصائيات المستخدمين", callback_data="admin_users_stats")],
         [InlineKeyboardButton("⬅️ رجوع", callback_data="admin_back")],
     ])
+
 
 def admin_orders_menu_keyboard():
     return InlineKeyboardMarkup([
@@ -924,6 +950,7 @@ def admin_orders_menu_keyboard():
         [InlineKeyboardButton("⬅️ رجوع", callback_data="admin_back")],
     ])
 
+
 def admin_recharges_menu_keyboard():
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("⏳ طلبات الشحن المعلقة", callback_data="admin_pending_recharges")],
@@ -933,6 +960,7 @@ def admin_recharges_menu_keyboard():
         [InlineKeyboardButton("⬅️ رجوع", callback_data="admin_back")],
     ])
 
+
 def admin_coupons_menu_keyboard():
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("➕ إنشاء كوبون", callback_data="admin_add_coupon")],
@@ -940,6 +968,7 @@ def admin_coupons_menu_keyboard():
         [InlineKeyboardButton("🗑️ حذف كوبون", callback_data="admin_delete_coupon")],
         [InlineKeyboardButton("⬅️ رجوع", callback_data="admin_back")],
     ])
+
 
 def admin_settings_menu_keyboard():
     return InlineKeyboardMarkup([
@@ -953,12 +982,14 @@ def admin_settings_menu_keyboard():
         [InlineKeyboardButton("⬅️ رجوع", callback_data="admin_back")],
     ])
 
+
 def admin_broadcast_menu_keyboard():
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("📢 رسالة للجميع", callback_data="admin_broadcast_all")],
         [InlineKeyboardButton("👤 رسالة لمستخدم محدد", callback_data="admin_broadcast_user")],
         [InlineKeyboardButton("⬅️ رجوع", callback_data="admin_back")],
     ])
+
 
 def admin_logs_menu_keyboard():
     return InlineKeyboardMarkup([
@@ -967,6 +998,7 @@ def admin_logs_menu_keyboard():
         [InlineKeyboardButton("🔍 بحث في السجل", callback_data="admin_logs_search")],
         [InlineKeyboardButton("⬅️ رجوع", callback_data="admin_back")],
     ])
+
 
 def products_inline_keyboard(products, page, total):
     buttons = []
@@ -988,11 +1020,13 @@ def products_inline_keyboard(products, page, total):
     buttons.append([InlineKeyboardButton("🏠 القائمة الرئيسية", callback_data="main_menu")])
     return InlineKeyboardMarkup(buttons)
 
+
 def product_detail_keyboard(product_id):
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("🛒 شراء الآن", callback_data=f"buy_{product_id}")],
         [InlineKeyboardButton("⬅️ رجوع للمتجر", callback_data="back_to_products")],
     ])
+
 
 def quantity_keyboard(product_id, stock):
     quantities = [1, 2, 3, 5]
@@ -1007,6 +1041,7 @@ def quantity_keyboard(product_id, stock):
     buttons.append([InlineKeyboardButton("⬅️ رجوع", callback_data=f"product_{product_id}")])
     return InlineKeyboardMarkup(buttons)
 
+
 def payment_methods_keyboard():
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("💳 ادفع من رصيدك", callback_data="pay_wallet")],
@@ -1018,12 +1053,6 @@ def payment_methods_keyboard():
         [InlineKeyboardButton("⬅️ رجوع", callback_data="back_to_summary")],
     ])
 
-def recharge_methods_keyboard():
-    return InlineKeyboardMarkup([
-        [InlineKeyboardButton("🏦 محفظة إلكترونية (يدوي)", callback_data="recharge_manual_wallet")],
-        [InlineKeyboardButton("🅱️ بينانس (USDT)", callback_data="recharge_binance")],
-        [InlineKeyboardButton("⬅️ رجوع", callback_data="main_menu")],
-    ])
 
 def admin_order_notification_keyboard(order_id, requires_account=0):
     if requires_account == 1:
@@ -1039,6 +1068,7 @@ def admin_order_notification_keyboard(order_id, requires_account=0):
         ],
         [InlineKeyboardButton("📝 إضافة ملاحظة", callback_data=f"admin_note_order_{order_id}")]
     ])
+
 
 def admin_recharge_notification_keyboard(recharge_id):
     return InlineKeyboardMarkup([
@@ -1127,7 +1157,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_data = get_or_create_user(user.id, user.username, user.first_name, user.last_name)
     user_count = get_user_count()
     balance = user_data[4] if user_data[4] else 0
-    bot_name = get_setting("bot_name", "DigitalHub")
+    bot_name = get_setting("bot_name", "Tamm Shop")
 
     text = (
         f"👥 {user_count:,} مستخدم\n\n"
@@ -1138,18 +1168,91 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     await update.message.reply_text(text, reply_markup=main_menu_keyboard(user.id))
 
+
+async def main_menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """عرض القائمة الرئيسية التفاعلية (Inline)"""
+    user = update.effective_user
+    user_data = get_or_create_user(user.id, user.username, user.first_name, user.last_name)
+    balance = user_data[4] if user_data[4] else 0
+    order_count = get_user_orders_count(user.id)
+    bot_name = get_setting("bot_name", "Tamm Shop")
+
+    text = (
+        f"*🏠 القائمة الرئيسية*\n"
+        f"━━━━━━━━━━━━━━━\n"
+        f"👋 مرحباً *{user.first_name or 'عزيزي'}*\n"
+        f"🏪 *{bot_name}* — تسوق ذكي وتسليم فوري\n\n"
+        f"💰 *رصيدك:* `{balance:.0f}` ج.م\n"
+        f"🛒 *طلباتك:* `{order_count}`\n"
+        f"━━━━━━━━━━━━━━━\n"
+        f"👇 *اختر ما تريد:*"
+    )
+
+    if update.callback_query:
+        query = update.callback_query
+        await query.answer()
+        await query.edit_message_text(
+            text,
+            parse_mode="Markdown",
+            reply_markup=main_inline_menu_keyboard(user.id)
+        )
+    else:
+        await update.message.reply_text(
+            text,
+            parse_mode="Markdown",
+            reply_markup=main_inline_menu_keyboard(user.id)
+        )
+
+
+async def wallet_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """واجهة المحفظة المحسنة مع تصميم أنيق وأزرار تفاعلية"""
+    user = update.effective_user
+    user_data = get_or_create_user(user.id, user.username, user.first_name, user.last_name)
+    balance = user_data[4] if user_data[4] else 0
+    spent = get_user_total_spent(user.id)
+    order_count = get_user_orders_count(user.id)
+
+    text = (
+        f"*💰 محفظتي*\n"
+        f"━━━━━━━━━━━━━━━\n"
+        f"👤 *{user.first_name or 'عزيزي'}*\n\n"
+        f"💵 *الرصيد الحالي:*\n"
+        f"`{balance:.0f}` *ج.م* 💎\n\n"
+        f"📊 *إحصائيات سريعة:*\n"
+        f"• الطلبات: `{order_count}`\n"
+        f"• إجمالي المشتريات: `{spent:.0f}` ج.م\n"
+        f"━━━━━━━━━━━━━━━\n"
+        f"💳 *اختر طريقة الشحن:*"
+    )
+
+    if update.callback_query:
+        query = update.callback_query
+        await query.answer()
+        await query.edit_message_text(
+            text,
+            parse_mode="Markdown",
+            reply_markup=wallet_inline_keyboard()
+        )
+    else:
+        await update.message.reply_text(
+            text,
+            parse_mode="Markdown",
+            reply_markup=wallet_inline_keyboard()
+        )
+
+
 async def admin_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     args = context.args
 
     if not args:
-        await update.message.reply_text("❌ استخدم: /admin [الكود السري]")
+        await update.message.reply_text("❌ استخدم: /admin [الكود السري]", reply_markup=main_menu_keyboard(user.id))
         return
 
     provided_code = args[0]
 
     if provided_code != ADMIN_SECRET and not is_admin(user.id):
-        await update.message.reply_text("❌ كود غير صحيح!")
+        await update.message.reply_text("❌ كود غير صحيح!", reply_markup=main_menu_keyboard(user.id))
         return
 
     if is_admin(user.id) or provided_code == ADMIN_SECRET:
@@ -1364,7 +1467,7 @@ async def admin_pending_orders(update: Update, context: ContextTypes.DEFAULT_TYP
         product = get_product(o[2])
         requires_account = product[10] if len(product) > 10 else 0
         product_type = "🎁 أكونت جاهز" if requires_account == 1 else "🔧 تفعيل على أكونت"
-        user_name = o[13] or o[14] or f"ID: {o[1]}"
+        user_name = o[16] or o[17] or f"ID: {o[1]}"
         client_email = o[8] if len(o) > 8 and o[8] else ""
         fawaterk_info = f"\n⚡ فاتورة: {o[11]}" if len(o) > 11 and o[11] else ""
         coupon_info = f"\n🎟 كوبون: {o[13]}" if len(o) > 13 and o[13] else ""
@@ -1502,7 +1605,7 @@ async def admin_pending_recharges(update: Update, context: ContextTypes.DEFAULT_
         return
     text = "💳 طلبات الشحن المعلقة:\n\n"
     for r in recharges:
-        user_name = r[7] or r[8] or f"ID: {r[1]}"
+        user_name = r[9] or r[10] or f"ID: {r[1]}"
         fawaterk_info = f"\n⚡ فاتورة ID: {r[6]}" if len(r) > 6 and r[6] else ""
         text += (
             f"🆔 #{r[0]} | {r[2]:.0f} ج.م\n"
@@ -2269,7 +2372,7 @@ async def admin_text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
             await update.message.reply_text("❌ مفيش نتائج!", reply_markup=admin_users_menu_keyboard())
         else:
             for u in users[:5]:
-                detail = admin_user_detail(None, None, u[0])
+                detail = await admin_user_detail(update, context, u[0])
                 await update.message.reply_text(detail, reply_markup=InlineKeyboardMarkup([
                     [InlineKeyboardButton("💰 تعديل رصيد", callback_data=f"admin_user_balance_{u[0]}")],
                     [InlineKeyboardButton("🚫 حظر/فك حظر", callback_data=f"admin_user_ban_{u[0]}")],
@@ -2307,25 +2410,24 @@ async def admin_text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     elif admin_state == "ban_user_id":
         try:
             target_id = int(text.strip())
-            u = get_user(target_id)
-            if not u:
-                await update.message.reply_text("❌ المستخدم مش موجود!")
-                return
-            new_ban = 0 if u[7] == 1 else 1
-            ban_user(target_id, new_ban)
-            log_admin_action(admin_id, "ban_user" if new_ban else "unban_user", "user", target_id, "")
+            user = get_user(target_id)
+            if user:
+                new_status = 0 if user[7] == 1 else 1
+                ban_user(target_id, new_status)
+                status_text = "فك حظر" if new_status == 0 else "حظر"
+                await update.message.reply_text(f"✅ تم {status_text} المستخدم {target_id}", reply_markup=admin_dashboard_keyboard())
+                try:
+                    if new_status == 1:
+                        await context.bot.send_message(chat_id=target_id, text="🚫 تم حظرك من استخدام البوت.")
+                    else:
+                        await context.bot.send_message(chat_id=target_id, text="✅ تم فك حظرك، يمكنك استخدام البوت تاني.")
+                except Exception:
+                    pass
+            else:
+                await update.message.reply_text("❌ المستخدم مش موجود!", reply_markup=admin_dashboard_keyboard())
             context.user_data["admin_state"] = "menu"
-            status = "حظر" if new_ban else "فك حظر"
-            await update.message.reply_text(f"✅ تم {status} المستخدم {target_id}", reply_markup=admin_dashboard_keyboard())
-            try:
-                if new_ban:
-                    await context.bot.send_message(chat_id=target_id, text="🚫 تم حظرك من استخدام البوت.")
-                else:
-                    await context.bot.send_message(chat_id=target_id, text="✅ تم فك حظرك. ممكن تستخدم البوت تاني.")
-            except:
-                pass
         except ValueError:
-            await update.message.reply_text("❌ لازم ID رقمي!")
+            await update.message.reply_text("❌ لازم ID يكون أرقام بس!", reply_markup=admin_dashboard_keyboard())
 
     elif admin_state == "coupon_code":
         context.user_data["temp_coupon"]["code"] = text.strip().upper()
@@ -2610,7 +2712,15 @@ async def pay_from_wallet(update: Update, context: ContextTypes.DEFAULT_TYPE):
     total_price = order_data["total_price"]
     if balance < total_price:
         remaining = total_price - balance
-        await query.answer(f"رصيدك غير كافي — محتاج {remaining:.0f} ج.م", show_alert=True)
+        await query.answer()
+        text = (
+            f"⚠️ رصيدك غير كافي!\n\n"
+            f"💰 المطلوب: {total_price:.0f} ج.م\n"
+            f"💳 رصيدك: {balance:.0f} ج.م\n"
+            f"📉 النقص: {remaining:.0f} ج.م\n\n"
+            f"👇 لتعبئة محفظتك 'شحن رصيد' اضغط على"
+        )
+        await query.edit_message_text(text, reply_markup=wallet_inline_keyboard())
         return
     await query.answer()
     product = get_product(order_data["product_id"])
@@ -2649,12 +2759,12 @@ async def binance_payment(update: Update, context: ContextTypes.DEFAULT_TYPE):
     usd_price = total_price / usd_rate
     usdt_addr = get_setting("usdt_address", "YOUR_USDT_TRC20_ADDRESS_HERE")
     text = (
-        f"✅ تمام. ادفع ${usd_price:.2f} USDT على شبكة TRC20:\n\n"
-        f"🅱️ عنوان المحفظة:\n"
+        f"✅ تمام. ادفع ${usd_price:.2f} USDT على شبكة USDT:\n\n"
+        f"🅱️ 1267938246\n"
         f"<code>{usdt_addr}</code>\n\n"
         f"⚠️ لازم تبعت نفس المبلغ بالظبط\n"
-        f"⚠️ شبكة TRC20 بس — لو حوّلت على شبكة تانية فلوسك هتضيع\n\n"
-        f"وبعد التحويل، ابعت TXID هنا للمراجعة 👇"
+        f"⚠️ شبكة USDT بس — لو حوّلت على شبكة تانية فلوسك هتضيع\n\n"
+        f"وبعد التحويل، ابعت Order ID هنا للمراجعة 👇"
     )
     await query.edit_message_text(text, parse_mode="HTML")
     context.user_data["awaiting_payment_confirmation"] = True
@@ -2862,39 +2972,33 @@ async def check_fawaterk_order(update: Update, context: ContextTypes.DEFAULT_TYP
 async def recharge_balance(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
-    await query.edit_message_text("💳 اختار طريقة شحن الرصيد:", reply_markup=recharge_methods_keyboard())
+    await query.edit_message_text("💳 اختار طريقة شحن الرصيد:", reply_markup=wallet_inline_keyboard())
 
 async def recharge_menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("💳 اختار طريقة شحن الرصيد:", reply_markup=recharge_methods_keyboard())
+    await update.message.reply_text("💳 اختار طريقة شحن الرصيد:", reply_markup=wallet_inline_keyboard())
 
 # ==================== USER ACCOUNT HANDLERS ====================
 async def account_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user = update.effective_user
-    user_data = get_or_create_user(user.id, user.username, user.first_name, user.last_name)
-    balance = user_data[4] if user_data[4] else 0
-    order_count = get_user_orders_count(user.id)
-    spent = get_user_total_spent(user.id)
-    text = (
-        f"👤 حسابي\n"
-        f"🆔 الايدي: {user.id}\n"
-        f"👏 الاسم: {user.first_name or 'غير معروف'}\n"
-        f"💰 رصيدك: {balance:.0f} ج.م\n"
-        f"🧾 عدد طلباتك: {order_count}\n"
-        f"💵 إجمالي مشترياتك: {spent:.0f} ج.م"
-    )
-    await update.message.reply_text(text, reply_markup=main_menu_keyboard(user.id))
+    """تم استبداله بواجهة المحفظة الجديدة"""
+    await wallet_handler(update, context)
 
 async def orders_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     orders = get_user_orders(user.id)
     if not orders:
-        await update.message.reply_text("🛒 ماعندكش طلبات لسه!\n\nروح للمنتجات واشتري 🛍", reply_markup=main_menu_keyboard(user.id))
-        return
-    text = "🛒 طلباتك:\n\n"
-    for o in orders:
-        status_emoji = "✅" if o[6] == "completed" else "⏳" if o[6] == "pending" else "❌"
-        text += f"{status_emoji} #{o[0]} | {o[12]} | {o[3]} قطعة | {o[4]:.0f} ج.م | {o[7]}\n"
-    await update.message.reply_text(text, reply_markup=main_menu_keyboard(user.id))
+        text = "🛒 ماعندكش طلبات لسه!\n\nروح للمنتجات واشتري 🛍"
+    else:
+        text = "🛒 طلباتك:\n\n"
+        for o in orders:
+            status_emoji = "✅" if o[6] == "completed" else "⏳" if o[6] == "pending" else "❌"
+            text += f"{status_emoji} #{o[0]} | {o[12]} | {o[3]} قطعة | {o[4]:.0f} ج.م | {o[7]}\n"
+
+    if update.callback_query:
+        query = update.callback_query
+        await query.answer()
+        await query.edit_message_text(text, reply_markup=main_inline_menu_keyboard(user.id))
+    else:
+        await update.message.reply_text(text, reply_markup=main_menu_keyboard(user.id))
 
 async def support_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     support_user = get_setting("support_username", "@SupportUsername")
@@ -2905,7 +3009,12 @@ async def support_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"{support_user}\n\n"
         f"⏰ مواعيد الرد: من 10 ص لـ 12 ص"
     )
-    await update.message.reply_text(text, reply_markup=main_menu_keyboard(update.effective_user.id))
+    if update.callback_query:
+        query = update.callback_query
+        await query.answer()
+        await query.edit_message_text(text, reply_markup=main_inline_menu_keyboard(update.effective_user.id))
+    else:
+        await update.message.reply_text(text, reply_markup=main_menu_keyboard(update.effective_user.id))
 
 async def tutorial_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = (
@@ -2919,7 +3028,12 @@ async def tutorial_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         '💡 تقدر تشوف طلباتك من "طلباتي 🛒"\n\n'
         "سهل صح؟ 😎"
     )
-    await update.message.reply_text(text, reply_markup=main_menu_keyboard(update.effective_user.id))
+    if update.callback_query:
+        query = update.callback_query
+        await query.answer()
+        await query.edit_message_text(text, reply_markup=main_inline_menu_keyboard(update.effective_user.id))
+    else:
+        await update.message.reply_text(text, reply_markup=main_menu_keyboard(update.effective_user.id))
 
 
 # ==================== CALLBACK HANDLER ====================
@@ -2933,23 +3047,41 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.answer("❌ ممنوع!", show_alert=True)
             return
 
-        if data == "admin_add_product": await admin_add_product_start(update, context)
-        elif data == "admin_list_products": await admin_list_products(update, context)
-        elif data == "admin_edit_product": await admin_edit_product_start(update, context)
-        elif data == "admin_delete_product": await admin_delete_product_start(update, context)
-        elif data == "admin_top_products": await admin_top_products(update, context)
-        elif data == "admin_products_menu": await admin_products_menu(update, context)
-        elif data == "admin_orders_menu": await admin_orders_menu(update, context)
-        elif data == "admin_recharges_menu": await admin_recharges_menu(update, context)
-        elif data == "admin_coupons_menu": await admin_coupons_menu(update, context)
-        elif data == "admin_categories_menu": await admin_categories_menu(update, context)
-        elif data == "admin_settings_menu": await admin_settings_menu(update, context)
-        elif data == "admin_broadcast_menu": await admin_broadcast_menu(update, context)
-        elif data == "admin_logs_menu": await admin_logs_menu(update, context)
-        elif data == "admin_stats_advanced": await admin_stats_advanced(update, context)
-        elif data == "admin_backup": await admin_backup(update, context)
-        elif data == "admin_exit": await exit_admin(update, context)
-        elif data == "admin_back": await admin_back_to_dashboard(update, context)
+        if data == "admin_add_product":
+            await admin_add_product_start(update, context)
+        elif data == "admin_list_products":
+            await admin_list_products(update, context)
+        elif data == "admin_edit_product":
+            await admin_edit_product_start(update, context)
+        elif data == "admin_delete_product":
+            await admin_delete_product_start(update, context)
+        elif data == "admin_top_products":
+            await admin_top_products(update, context)
+        elif data == "admin_products_menu":
+            await admin_products_menu(update, context)
+        elif data == "admin_orders_menu":
+            await admin_orders_menu(update, context)
+        elif data == "admin_recharges_menu":
+            await admin_recharges_menu(update, context)
+        elif data == "admin_coupons_menu":
+            await admin_coupons_menu(update, context)
+        elif data == "admin_categories_menu":
+            await admin_categories_menu(update, context)
+        elif data == "admin_settings_menu":
+            await admin_settings_menu(update, context)
+        elif data == "admin_broadcast_menu":
+            await admin_broadcast_menu(update, context)
+        elif data == "admin_logs_menu":
+            await admin_logs_menu(update, context)
+        elif data == "admin_stats_advanced":
+            await admin_stats_advanced(update, context)
+        elif data == "admin_backup":
+            await admin_backup(update, context)
+        elif data == "admin_exit":
+            context.user_data.clear()
+            await exit_admin(update, context)
+        elif data == "admin_back":
+            await admin_back_to_dashboard(update, context)
         elif data == "admin_desc_approve":
             await query.answer()
             temp_product = context.user_data.get("temp_product", {})
@@ -2965,49 +3097,92 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.edit_message_text(
                 "➕ الخطوة 5/8 (يدوي)\n✏️ ارسل الوصف/المميزات اللي عايزها (مفصولة بـ |):"
             )
-        elif data == "admin_users_menu": await admin_users_menu(update, context)
-        elif data == "admin_list_users": await admin_list_users(update, context)
-        elif data == "admin_search_user": await admin_search_user_start(update, context)
-        elif data == "admin_edit_balance": await admin_edit_balance_start(update, context)
-        elif data == "admin_ban_user": await admin_ban_user_start(update, context)
-        elif data == "admin_users_stats": await admin_users_stats(update, context)
-        elif data == "admin_pending_orders": await admin_pending_orders(update, context)
-        elif data == "admin_completed_orders": await admin_completed_orders(update, context)
-        elif data == "admin_rejected_orders": await admin_rejected_orders(update, context)
-        elif data == "admin_search_order": await admin_search_order_start(update, context)
-        elif data == "admin_orders_stats": await admin_orders_stats(update, context)
-        elif data == "admin_pending_recharges": await admin_pending_recharges(update, context)
-        elif data == "admin_completed_recharges": await admin_completed_recharges(update, context)
-        elif data == "admin_rejected_recharges": await admin_rejected_recharges(update, context)
-        elif data == "admin_recharges_stats": await admin_recharges_stats(update, context)
-        elif data == "admin_add_coupon": await admin_add_coupon_start(update, context)
-        elif data == "admin_list_coupons": await admin_list_coupons(update, context)
-        elif data == "admin_delete_coupon": await admin_delete_coupon_start(update, context)
-        elif data == "admin_add_category": await admin_add_category_start(update, context)
-        elif data == "admin_set_wallet": await admin_set_wallet_start(update, context)
-        elif data == "admin_set_usdt": await admin_set_usdt_start(update, context)
-        elif data == "admin_set_support": await admin_set_support_start(update, context)
-        elif data == "admin_set_botname": await admin_set_botname_start(update, context)
-        elif data == "admin_set_welcome": await admin_set_welcome_start(update, context)
-        elif data == "admin_maintenance": await admin_maintenance_toggle(update, context)
-        elif data == "admin_set_usd_rate": await admin_set_usd_rate_start(update, context)
-        elif data == "admin_broadcast_all": await admin_broadcast_all_start(update, context)
-        elif data == "admin_broadcast_user": await admin_broadcast_user_start(update, context)
-        elif data == "admin_logs_20": await admin_logs_show(update, context)
-        elif data == "admin_logs_50": await admin_logs_show(update, context)
-        elif data == "admin_logs_search": await admin_logs_search_start(update, context)
-        elif data.startswith("admin_edit_select_"): await admin_edit_select(update, context)
-        elif data.startswith("admin_edit_field_"): await admin_edit_field_select(update, context)
-        elif data.startswith("admin_toggle_product_"): await admin_toggle_product(update, context)
-        elif data.startswith("admin_del_coupon_"): await admin_delete_coupon_confirm(update, context)
-        elif data.startswith("admin_reorder_up_") or data.startswith("admin_reorder_down_"): await admin_reorder_move(update, context)
-        elif data.startswith("admin_confirm_order_"): await admin_confirm_order(update, context)
-        elif data.startswith("admin_reject_order_"): await admin_reject_order(update, context)
-        elif data.startswith("admin_deliver_"): await admin_deliver_account(update, context)
-        elif data.startswith("admin_note_order_"): await admin_note_order_start(update, context)
-        elif data.startswith("admin_confirm_recharge_"): await admin_confirm_recharge(update, context)
-        elif data.startswith("admin_reject_recharge_"): await admin_reject_recharge(update, context)
-        elif data.startswith("admin_note_recharge_"): await admin_note_recharge_start(update, context)
+        elif data == "admin_users_menu":
+            await admin_users_menu(update, context)
+        elif data == "admin_list_users":
+            await admin_list_users(update, context)
+        elif data == "admin_search_user":
+            await admin_search_user_start(update, context)
+        elif data == "admin_edit_balance":
+            await admin_edit_balance_start(update, context)
+        elif data == "admin_ban_user":
+            await admin_ban_user_start(update, context)
+        elif data == "admin_users_stats":
+            await admin_users_stats(update, context)
+        elif data == "admin_pending_orders":
+            await admin_pending_orders(update, context)
+        elif data == "admin_completed_orders":
+            await admin_completed_orders(update, context)
+        elif data == "admin_rejected_orders":
+            await admin_rejected_orders(update, context)
+        elif data == "admin_search_order":
+            await admin_search_order_start(update, context)
+        elif data == "admin_orders_stats":
+            await admin_orders_stats(update, context)
+        elif data == "admin_pending_recharges":
+            await admin_pending_recharges(update, context)
+        elif data == "admin_completed_recharges":
+            await admin_completed_recharges(update, context)
+        elif data == "admin_rejected_recharges":
+            await admin_rejected_recharges(update, context)
+        elif data == "admin_recharges_stats":
+            await admin_recharges_stats(update, context)
+        elif data == "admin_add_coupon":
+            await admin_add_coupon_start(update, context)
+        elif data == "admin_list_coupons":
+            await admin_list_coupons(update, context)
+        elif data == "admin_delete_coupon":
+            await admin_delete_coupon_start(update, context)
+        elif data == "admin_add_category":
+            await admin_add_category_start(update, context)
+        elif data == "admin_set_wallet":
+            await admin_set_wallet_start(update, context)
+        elif data == "admin_set_usdt":
+            await admin_set_usdt_start(update, context)
+        elif data == "admin_set_support":
+            await admin_set_support_start(update, context)
+        elif data == "admin_set_botname":
+            await admin_set_botname_start(update, context)
+        elif data == "admin_set_welcome":
+            await admin_set_welcome_start(update, context)
+        elif data == "admin_maintenance":
+            await admin_maintenance_toggle(update, context)
+        elif data == "admin_set_usd_rate":
+            await admin_set_usd_rate_start(update, context)
+        elif data == "admin_broadcast_all":
+            await admin_broadcast_all_start(update, context)
+        elif data == "admin_broadcast_user":
+            await admin_broadcast_user_start(update, context)
+        elif data == "admin_logs_20":
+            await admin_logs_show(update, context)
+        elif data == "admin_logs_50":
+            await admin_logs_show(update, context)
+        elif data == "admin_logs_search":
+            await admin_logs_search_start(update, context)
+        elif data.startswith("admin_edit_select_"):
+            await admin_edit_select(update, context)
+        elif data.startswith("admin_edit_field_"):
+            await admin_edit_field_select(update, context)
+        elif data.startswith("admin_toggle_product_"):
+            await admin_toggle_product(update, context)
+        elif data.startswith("admin_del_coupon_"):
+            await admin_delete_coupon_confirm(update, context)
+        elif data.startswith("admin_reorder_up_") or data.startswith("admin_reorder_down_"):
+            await admin_reorder_move(update, context)
+        elif data.startswith("admin_confirm_order_"):
+            await admin_confirm_order(update, context)
+        elif data.startswith("admin_reject_order_"):
+            await admin_reject_order(update, context)
+        elif data.startswith("admin_deliver_"):
+            await admin_deliver_account(update, context)
+        elif data.startswith("admin_note_order_"):
+            await admin_note_order_start(update, context)
+        elif data.startswith("admin_confirm_recharge_"):
+            await admin_confirm_recharge(update, context)
+        elif data.startswith("admin_reject_recharge_"):
+            await admin_reject_recharge(update, context)
+        elif data.startswith("admin_note_recharge_"):
+            await admin_note_recharge_start(update, context)
         elif data.startswith("admin_users_page_"):
             context.user_data["users_page"] = int(data.split("_")[3])
             await admin_list_users(update, context)
@@ -3038,18 +3213,66 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await query.edit_message_text(f"✅ تم {status} المستخدم {target}")
         return
 
-    if data.startswith("page_"):
+    # القائمة الرئيسية التفاعلية
+    if data == "main_menu":
+        await query.answer()
+        for key in ["awaiting_client_email", "awaiting_custom_qty", "awaiting_coupon",
+                    "awaiting_payment_confirmation", "recharge_flow", "recharge_step",
+                    "recharge_amount", "recharge_method", "admin_delivering_order",
+                    "admin_delivery_order_id", "admin_delivery_step", "admin_delivery_email",
+                    "order", "client_email", "applied_coupon", "coupon_discount",
+                    "payment_type", "order_payment_method"]:
+            context.user_data.pop(key, None)
+        await main_menu_handler(update, context)
+    elif data == "browse_products":
+        await query.answer()
+        for key in ["awaiting_client_email", "awaiting_custom_qty", "awaiting_coupon",
+                    "awaiting_payment_confirmation", "order", "client_email",
+                    "applied_coupon", "coupon_discount"]:
+            context.user_data.pop(key, None)
+        await products_handler(update, context)
+    elif data == "my_orders":
+        await query.answer()
+        for key in ["awaiting_client_email", "order", "client_email"]:
+            context.user_data.pop(key, None)
+        await orders_handler(update, context)
+    elif data == "my_wallet":
+        await query.answer()
+        for key in ["awaiting_client_email", "order", "client_email"]:
+            context.user_data.pop(key, None)
+        await wallet_handler(update, context)
+    elif data == "recharge_balance":
+        await query.answer()
+        for key in ["awaiting_client_email", "order", "client_email"]:
+            context.user_data.pop(key, None)
+        await recharge_balance(update, context)
+    elif data == "my_coupons":
+        await query.answer()
+        for key in ["awaiting_client_email", "order", "client_email"]:
+            context.user_data.pop(key, None)
+        await coupons_handler(update, context)
+    elif data == "support":
+        await query.answer()
+        for key in ["awaiting_client_email", "order", "client_email"]:
+            context.user_data.pop(key, None)
+        await support_handler(update, context)
+    elif data == "tutorial":
+        await query.answer()
+        for key in ["awaiting_client_email", "order", "client_email"]:
+            context.user_data.pop(key, None)
+        await tutorial_handler(update, context)
+    elif data.startswith("page_"):
         page = int(data.split("_")[1])
         context.user_data["product_page"] = page
         await products_handler(update, context)
-    elif data == "main_menu":
-        await query.answer()
-        context.user_data.pop("recharge_flow", None)
-        await query.edit_message_text("🏠 رجعنا للقائمة الرئيسية")
-        await start(update, context)
     elif data == "back_to_products":
+        await query.answer()
+        for key in ["awaiting_client_email", "order", "client_email"]:
+            context.user_data.pop(key, None)
         await products_handler(update, context)
     elif data == "back_to_summary":
+        await query.answer()
+        context.user_data.pop("awaiting_client_email", None)
         order_data = context.user_data.get("order")
         if order_data:
             product = get_product(order_data["product_id"])
@@ -3124,509 +3347,238 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     text = update.message.text
+    admin_state = context.user_data.get("admin_state", "")
 
-    u = get_user(user.id)
-    if u and u[7] == 1:
-        await update.message.reply_text("🚫 تم حظرك من استخدام البوت.")
-        return
-
-    if get_setting("maintenance_mode") == "1" and not is_admin(user.id):
-        await update.message.reply_text("🔧 البوت في وضع الصيانة حالياً.")
-        return
-
+    # Handle admin text inputs FIRST (before clearing states)
     if context.user_data.get("admin_mode") and (is_admin(user.id) or is_admin_session_active(user.id)):
-        await admin_text_handler(update, context)
-        return
-
-    if context.user_data.get("awaiting_client_email"):
-        emails = [e.strip() for e in text.strip().split("\n") if e.strip()]
-        invalid = [e for e in emails if "@" not in e or "." not in e]
-        if invalid:
-            await update.message.reply_text("❌ فيه إيميل غلط! جرب تاني:")
+        if admin_state:
+            await admin_text_handler(update, context)
             return
-        context.user_data["client_email"] = "\n".join(emails)
+
+    # Handle user flows FIRST
+    if context.user_data.get("awaiting_client_email"):
+        context.user_data["client_email"] = text.strip()
         context.user_data.pop("awaiting_client_email", None)
         order_data = context.user_data.get("order")
-        if not order_data:
-            await update.message.reply_text("❌ مفيش طلب نشط!", reply_markup=main_menu_keyboard(user.id))
-            return
-        product = get_product(order_data["product_id"])
-        user_data = get_or_create_user(user.id, user.username, user.first_name, user.last_name)
-        balance = user_data[4] if user_data[4] else 0
-        total_price = order_data["total_price"]
-        usd_rate = float(get_setting("usd_rate", "50"))
-        usd_price = total_price / usd_rate
-        text_summary = (
-            f"🧾 ملخص الطلب\n"
-            f"🛍 {product[1]}\n"
-            f"🔢 الكمية: {order_data['quantity']}\n"
-            f"📧 الإيميل/الإيميلات:\n<code>{html.escape(context.user_data['client_email'])}</code>\n"
-            f"💰 سعر الوحدة: {order_data['unit_price']:.0f} ج.م\n"
-            f"🧮 الإجمالي: {total_price:.0f} ج.م\n"
-            f"💵 يعادل بالدولار: ${usd_price:.2f}\n"
-            f"💳 رصيدك: {balance:.0f} ج.م\n\n"
-            f"👇 اختار طريقة الدفع"
-        )
-        await update.message.reply_text(text_summary, reply_markup=payment_methods_keyboard(), parse_mode="HTML")
-        return
-
-    if context.user_data.get("admin_delivering_order"):
-        order_id = context.user_data.get("admin_delivery_order_id")
-        step = context.user_data.get("admin_delivery_step")
-        if step == "email":
-            context.user_data["admin_delivery_email"] = text.strip()
-            context.user_data["admin_delivery_step"] = "password"
-            await update.message.reply_text(f"🔑 الخطوة 2/2 — ارسل الباسورد للطلب #{order_id}:")
-            return
-        elif step == "password":
-            delivered_email = context.user_data.get("admin_delivery_email", "")
-            delivered_password = text.strip()
-            conn = get_db()
-            cursor = conn.cursor()
-            cursor.execute("UPDATE orders SET delivered_email = ?, delivered_password = ?, status = 'completed' WHERE id = ?",
-                           (delivered_email, delivered_password, order_id))
-            cursor.execute("SELECT user_id, product_id, quantity, total_price FROM orders WHERE id = ?", (order_id,))
-            order_row = cursor.fetchone()
-            conn.commit()
-            conn.close()
-            if order_row:
-                product = get_product(order_row[1])
-                update_product_stock(order_row[1], order_row[2])
-                increment_product_sales(order_row[1], order_row[2])
-                try:
-                    await context.bot.send_message(
-                        chat_id=order_row[0],
-                        text=(
-                            f"✅ تم تأكيد طلبك وتسليم الحساب!\n\n"
-                            f"🛍 الطلب رقم: #{order_id}\n"
-                            f"📧 الإيميل: <code>{html.escape(delivered_email)}</code>\n"
-                            f"🔑 الباسورد: <code>{html.escape(delivered_password)}</code>\n\n"
-                            f"🎉 استمتع بالخدمة!"
-                        ),
-                        parse_mode="HTML"
-                    )
-                except Exception as e:
-                    logger.error(f"Failed to notify user {order_row[0]}: {e}")
-            context.user_data.pop("admin_delivering_order", None)
-            context.user_data.pop("admin_delivery_order_id", None)
-            context.user_data.pop("admin_delivery_step", None)
-            context.user_data.pop("admin_delivery_email", None)
-            await update.message.reply_text(f"✅ تم تسليم الطلب #{order_id} بنجاح!", reply_markup=admin_dashboard_keyboard())
-            return
-
-    if context.user_data.get("recharge_flow"):
-        step = context.user_data.get("recharge_step")
-        method = context.user_data.get("recharge_method")
-        if step == "amount":
-            try:
-                amount = float(text.strip())
-                if amount <= 0:
-                    await update.message.reply_text("❌ المبلغ لازم يكون أكبر من صفر!")
-                    return
-                min_recharge = float(get_setting("min_recharge", "10"))
-                if amount < min_recharge:
-                    await update.message.reply_text(f"❌ الحد الأدنى للشحن: {min_recharge:.0f} ج.م")
-                    return
-                context.user_data["recharge_amount"] = amount
-                if method == "wallet":
-                    context.user_data["recharge_step"] = "get_phone"
-                    wallet = get_setting("wallet_number", WALLET_NUMBER)
-                    wallet_name = get_setting("wallet_name", WALLET_NAME)
-                    text_msg = (
-                        f"✅ حول <b>{amount:.0f} ج.م</b> بالظبط على محفظة إلكترونية:\n\n"
-                        f"💳 الرقم: <code>{wallet}</code> — باسم: <b>{wallet_name}</b>\n\n"
-                        f"👇 وبعد ما تحول، ابعت <b>رقم موبايلك</b> هنا:\n"
-                        f"⚠️ لازم تحوّل نفس المبلغ بالضبط!"
-                    )
-                    await update.message.reply_text(text_msg, parse_mode="HTML")
-                elif method == "binance":
-                    context.user_data["recharge_step"] = "confirm_binance"
-                    usd_rate = float(get_setting("usd_rate", "50"))
-                    usd_amount = amount / usd_rate
-                    usdt_addr = get_setting("usdt_address", "YOUR_USDT_TRC20_ADDRESS_HERE")
-                    text_msg = (
-                        f"✅ ادفع <b>${usd_amount:.2f}</b> USDT على شبكة TRC20:\n\n"
-                        f"🅱️ العنوان:\n<code>{usdt_addr}</code>\n\n"
-                        f"⚠️ شبكة TRC20 بس\n\n"
-                        f"👇 وبعد التحويل، ابعت <b>TXID</b> هنا:"
-                    )
-                    await update.message.reply_text(text_msg, parse_mode="HTML")
-            except ValueError:
-                await update.message.reply_text("❌ لازم تكتب رقم صحيح!")
-            return
-        elif step == "get_phone":
-            sender_phone = text.strip()
-            if not sender_phone.startswith("01") or len(sender_phone) != 11:
-                await update.message.reply_text("❌ رقم الموبايل غير صحيح! لازم يبدأ بـ 01 و 11 رقم.")
-                return
-            amount = context.user_data.get("recharge_amount", 0)
-            recharge_id = create_recharge(user.id, amount, sender_phone)
-            context.user_data.pop("recharge_flow", None)
-            context.user_data.pop("recharge_step", None)
-            context.user_data.pop("recharge_amount", None)
-            context.user_data.pop("recharge_method", None)
-            await update.message.reply_text(
-                f"⏳ <b>تم استلام طلبك!</b>\n\n"
-                f"💰 المبلغ: {amount:.0f} ج.م\n"
-                f"📱 رقم التحويل: <code>{html.escape(sender_phone)}</code>\n\n"
-                f"🔍 الأدمن هيراجع التحويل!",
-                parse_mode="HTML",
-                reply_markup=main_menu_keyboard(user.id)
+        if order_data:
+            product = get_product(order_data["product_id"])
+            user_data = get_or_create_user(user.id, user.username, user.first_name, user.last_name)
+            balance = user_data[4] if user_data[4] else 0
+            total_price = order_data["total_price"]
+            usd_rate = float(get_setting("usd_rate", "50"))
+            usd_price = total_price / usd_rate
+            msg = (
+                f"🧾 ملخص الطلب\n"
+                f"🛍 {product[1]}\n"
+                f"🔢 الكمية: {order_data['quantity']}\n"
+                f"💰 سعر الوحدة: {order_data['unit_price']:.0f} ج.م\n"
+                f"🧮 الإجمالي: {total_price:.0f} ج.م\n"
+                f"💵 يعادل بالدولار: ${usd_price:.2f}\n"
+                f"📧 الإيميل: {text.strip()}\n"
+                f"💳 رصيدك: {balance:.0f} ج.م\n\n"
+                f"👇 اختار طريقة الدفع"
             )
-            await notify_admins_recharge(context, user, amount, sender_phone, recharge_id)
-            return
-        elif step == "confirm_binance":
-            sender_info = text.strip()
-            amount = context.user_data.get("recharge_amount", 0)
-            recharge_id = create_recharge(user.id, amount, sender_info)
-            context.user_data.pop("recharge_flow", None)
-            context.user_data.pop("recharge_step", None)
-            context.user_data.pop("recharge_amount", None)
-            context.user_data.pop("recharge_method", None)
-            await update.message.reply_text(
-                f"⏳ تم إرسال طلب الشحن للأدمن!\n\n"
-                f"💰 المبلغ: {amount:.0f} ج.م\n"
-                f"📱 تفاصيل التحويل: <code>{html.escape(sender_info)}</code>\n\n"
-                f"✅ هنرد عليك في خلال دقايق!",
-                parse_mode="HTML",
-                reply_markup=main_menu_keyboard(user.id)
-            )
-            await notify_admins_recharge(context, user, amount, sender_info, recharge_id)
-            return
-
-    if context.user_data.get("awaiting_payment_confirmation"):
-        txid = text.strip()
-        if len(txid) >= 5:
-            payment_type = context.user_data.get("payment_type", "order")
-            if payment_type == "order":
-                order_data = context.user_data.get("order")
-                payment_method = context.user_data.get("order_payment_method", "بينانس USDT (يدوي)")
-                client_email = context.user_data.get("client_email", "")
-                coupon_code = context.user_data.get("applied_coupon", "")
-                discount_amount = context.user_data.get("coupon_discount", 0)
-                if order_data:
-                    total_price = order_data["total_price"]
-                    product = get_product(order_data["product_id"])
-                    requires_account = product[10] if len(product) > 10 else 0
-                    if requires_account == 1:
-                        order_id = create_order(user.id, order_data["product_id"], order_data["quantity"], total_price,
-                                                f"{payment_method} - TXID: {txid}", "", "", "", "", coupon_code, discount_amount)
-                    else:
-                        order_id = create_order(user.id, order_data["product_id"], order_data["quantity"], total_price,
-                                                f"{payment_method} - TXID: {txid}", client_email, "", "", "", coupon_code, discount_amount)
-                    await update.message.reply_text(
-                        "⏳ تم إرسال بيانات الدفع للأدمن للمراجعة.\nهنرد عليك فور التحقق! ✅",
-                        reply_markup=main_menu_keyboard(user.id)
-                    )
-                    await notify_admins_order(context, order_id, user, product, order_data["quantity"], total_price,
-                                              f"{payment_method} (TXID: {txid})", client_email)
-            context.user_data.pop("awaiting_payment_confirmation", None)
-            context.user_data.pop("payment_type", None)
-            context.user_data.pop("order_payment_method", None)
-            context.user_data.pop("client_email", None)
-            context.user_data.pop("order", None)
-            context.user_data.pop("applied_coupon", None)
-            context.user_data.pop("coupon_discount", None)
-        else:
-            await update.message.reply_text("❌ TXID غير صحيح! أدخل تفاصيل صحيحة:")
-        return
-
-    if context.user_data.get("awaiting_coupon"):
-        await process_coupon(update, context, text.strip())
-        context.user_data.pop("awaiting_coupon", None)
+            await update.message.reply_text(msg, reply_markup=payment_methods_keyboard())
         return
 
     if context.user_data.get("awaiting_custom_qty"):
         try:
-            quantity = int(text.strip())
-            if quantity <= 0:
-                await update.message.reply_text("❌ الكمية لازم تكون أكبر من صفر!")
-                return
+            qty = int(text.strip())
             product_id = context.user_data.pop("awaiting_custom_qty")
             product = get_product(product_id)
-            if not product or product[3] <= 0:
-                await update.message.reply_text("❌ المنتج نفذ من المخزون!")
+            if qty > product[3] or qty < 1:
+                await update.message.reply_text("❌ الكمية غير متاحة!")
                 return
             user_data = get_or_create_user(user.id, user.username, user.first_name, user.last_name)
             balance = user_data[4] if user_data[4] else 0
             unit_price = product[2]
-            total_price = unit_price * quantity
+            total_price = unit_price * qty
             usd_rate = float(get_setting("usd_rate", "50"))
             usd_price = total_price / usd_rate
-            requires_account = product[10] if len(product) > 10 else 0
             context.user_data["order"] = {
-                "product_id": product_id, "quantity": quantity,
+                "product_id": product_id, "quantity": qty,
                 "total_price": total_price, "unit_price": unit_price, "discount_amount": 0,
             }
+            requires_account = product[10] if len(product) > 10 else 0
             if requires_account == 0:
                 context.user_data["awaiting_client_email"] = True
                 await update.message.reply_text(
                     f"📧 الخدمة دي بتتفعل على أكونتك الشخصي.\n\n"
                     f"🛍 {product[1]}\n"
-                    f"🔢 الكمية: {quantity}\n"
+                    f"🔢 الكمية: {qty}\n"
                     f"🧮 الإجمالي: {total_price:.0f} ج.م\n\n"
                     f"✍️ ارسل الإيميل/الإيميلات اللي هيتفعل عليها (إيميل في كل سطر):"
                 )
-                return
-            text_summary = (
-                f"🧾 ملخص الطلب\n"
-                f"🛍 {product[1]}\n"
-                f"🔢 الكمية: {quantity}\n"
-                f"💰 سعر الوحدة: {unit_price:.0f} ج.م\n"
-                f"🧮 الإجمالي: {total_price:.0f} ج.م\n"
-                f"💵 يعادل بالدولار: ${usd_price:.2f}\n"
-                f"💳 رصيدك: {balance:.0f} ج.م\n\n"
-                f"👇 اختار طريقة الدفع"
-            )
-            await update.message.reply_text(text_summary, reply_markup=payment_methods_keyboard())
+            else:
+                msg = (
+                    f"🧾 ملخص الطلب\n"
+                    f"🛍 {product[1]}\n"
+                    f"🔢 الكمية: {qty}\n"
+                    f"💰 سعر الوحدة: {unit_price:.0f} ج.م\n"
+                    f"🧮 الإجمالي: {total_price:.0f} ج.م\n"
+                    f"💵 يعادل بالدولار: ${usd_price:.2f}\n"
+                    f"💳 رصيدك: {balance:.0f} ج.م\n\n"
+                    f"👇 اختار طريقة الدفع"
+                )
+                await update.message.reply_text(msg, reply_markup=payment_methods_keyboard())
         except ValueError:
-            await update.message.reply_text("❌ لازم تكون رقم صحيح!")
+            await update.message.reply_text("❌ لازم رقم!")
         return
 
-    if text == "المنتجات 🛍":
+    if context.user_data.get("awaiting_coupon"):
+        context.user_data.pop("awaiting_coupon", None)
+        await process_coupon(update, context, text.strip())
+        return
+
+    if context.user_data.get("awaiting_payment_confirmation"):
+        context.user_data.pop("awaiting_payment_confirmation", None)
+        context.user_data.pop("payment_type", None)
+        context.user_data.pop("order_payment_method", None)
+        await update.message.reply_text(
+            "✅ تم استلام التأكيد! الأدمن هيراجع التحويل ويوافق عليه قريباً.\n"
+            "⏳ هنرد عليك في خلال دقايق."
+        )
+        return
+
+    if context.user_data.get("recharge_flow"):
+        step = context.user_data.get("recharge_step")
+        if step == "amount":
+            try:
+                amount = float(text.strip())
+                min_recharge = float(get_setting("min_recharge", "5"))
+                if amount < min_recharge:
+                    await update.message.reply_text(f"❌ الحد الأدنى للشحن: {min_recharge:.0f} ج.م")
+                    return
+                context.user_data["recharge_amount"] = amount
+                context.user_data["recharge_step"] = "phone"
+                method = context.user_data.get("recharge_method", "wallet")
+                if method == "wallet":
+                    wallet = get_setting("wallet_number", WALLET_NUMBER)
+                    wallet_name = get_setting("wallet_name", WALLET_NAME)
+                    await update.message.reply_text(
+                        f"💰 المبلغ: {amount:.0f} ج.م\n\n"
+                        f"📱 ارسل رقم المحفظة اللي حوّلت منها:\n"
+                        f"*(أو اسمك + رقم التحويل)*"
+                    )
+                else:
+                    usd_rate = float(get_setting("usd_rate", "50"))
+                    usd_amount = amount / usd_rate
+                    usdt_addr = get_setting("usdt_address", "YOUR_USDT_TRC20_ADDRESS_HERE")
+                    await update.message.reply_text(
+                        f"💰 المبلغ: {amount:.0f} ج.م ≈ ${usd_amount:.2f} USDT\n\n"
+                        f"🅱️ عنوان USDT TRC20:\n"
+                        f"<code>{usdt_addr}</code>\n\n"
+                        f"📱 بعد التحويل، ارسل رقم المحفظة/التفاصيل هنا للتأكيد:",
+                        parse_mode="HTML"
+                    )
+            except ValueError:
+                await update.message.reply_text("❌ لازم رقم!")
+            return
+        elif step == "phone":
+            sender_info = text.strip()
+            amount = context.user_data.get("recharge_amount", 0)
+            method = context.user_data.get("recharge_method", "wallet")
+            recharge_id = create_recharge(user.id, amount, sender_info)
+            await notify_admins_recharge(context, user, amount, sender_info, recharge_id)
+            context.user_data.pop("recharge_flow", None)
+            context.user_data.pop("recharge_step", None)
+            context.user_data.pop("recharge_amount", None)
+            context.user_data.pop("recharge_method", None)
+            await update.message.reply_text(
+                f"⏳ تم إرسال طلب الشحن للأدمن!\n"
+                f"💰 المبلغ: {amount:.0f} ج.م\n"
+                f"📱 التفاصيل: {sender_info}\n\n"
+                f"✅ هنرد عليك في خلال دقايق."
+            )
+            return
+
+    if context.user_data.get("admin_delivering_order"):
+        delivery_step = context.user_data.get("admin_delivery_step")
+        order_id = context.user_data.get("admin_delivery_order_id")
+        if delivery_step == "email":
+            context.user_data["admin_delivery_email"] = text.strip()
+            context.user_data["admin_delivery_step"] = "password"
+            await update.message.reply_text(f"📦 تسليم حساب — الطلب #{order_id}\n\n✍️ الخطوة 2/2 — ارسل الباسورد:")
+            return
+        elif delivery_step == "password":
+            email = context.user_data.pop("admin_delivery_email", "")
+            password = text.strip()
+            order = get_order(order_id)
+            if order:
+                conn = get_db()
+                cursor = conn.cursor()
+                cursor.execute(
+                    "UPDATE orders SET delivered_email = ?, delivered_password = ?, status = 'completed' WHERE id = ?",
+                    (email, password, order_id)
+                )
+                conn.commit()
+                conn.close()
+                update_product_stock(order[2], order[3])
+                increment_product_sales(order[2], order[3])
+                try:
+                    await context.bot.send_message(
+                        chat_id=order[1],
+                        text=(
+                            f"✅ تم تأكيد طلبك وتسليم الحساب!\n\n"
+                            f"🛍 الطلب رقم: #{order_id}\n"
+                            f"📧 الإيميل: <code>{html.escape(email)}</code>\n"
+                            f"🔑 الباسورد: <code>{html.escape(password)}</code>\n\n"
+                            f"🎉 استمتع بالخدمة!"
+                        ),
+                        parse_mode="HTML"
+                    )
+                except Exception as e:
+                    logger.error(f"Failed to notify user: {e}")
+            context.user_data.pop("admin_delivering_order", None)
+            context.user_data.pop("admin_delivery_order_id", None)
+            context.user_data.pop("admin_delivery_step", None)
+            await update.message.reply_text(f"✅ تم تسليم الطلب #{order_id}")
+            return
+
+    # Main menu buttons
+    if text == "📦 المنتجات":
         await products_handler(update, context)
-    elif text == "حسابي 👤":
-        await account_handler(update, context)
-    elif text == "طلباتي 🛒":
-        await orders_handler(update, context)
-    elif text == "شحن رصيد 💳":
-        await recharge_menu_handler(update, context)
-    elif text == "الكوبونات 🎟":
-        await coupons_handler(update, context)
-    elif text == "الدعم 💬":
-        await support_handler(update, context)
-    elif text == "📖 شرح البوت":
-        await tutorial_handler(update, context)
+        return
+    elif text == "🏠 الرئيسية":
+        await main_menu_handler(update, context)
+        return
     elif text == "🔐 لوحة التحكم المتقدمة":
         if is_admin(user.id) or is_admin_session_active(user.id):
             context.user_data["admin_mode"] = True
             context.user_data["admin_state"] = "menu"
-            await update.message.reply_text("🔐 لوحة تحكم الأدمن\n\n👇 اختار الإجراء المطلوب:", reply_markup=admin_dashboard_keyboard())
+            await update.message.reply_text("🔐 أهلاً بك في لوحة تحكم الأدمن، الإجراء مطلوب:", reply_markup=admin_dashboard_keyboard())
         else:
-            await update.message.reply_text("❌ ممنوع!")
-    else:
-        await update.message.reply_text("👇 اختار من القائمة اللي تحت", reply_markup=main_menu_keyboard(user.id))
+            await update.message.reply_text("❌ ممنوع دخول هذه اللوحة!", reply_markup=main_menu_keyboard(user.id))
+        return
+
+    # Default fallback
+    await update.message.reply_text("👇 اختر من القائمة التي تحت:", reply_markup=main_menu_keyboard(user.id))
 
 
-# ==================== MAIN ====================
+# ==================== MAIN ENTRY POINT ====================
 def main():
     init_db()
     migrate_db()
+
     application = Application.builder().token(BOT_TOKEN).build()
+
+    # Commands
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("admin", admin_command))
-    application.add_handler(CommandHandler("exit_admin", exit_admin))
+    application.add_handler(CommandHandler("exit", exit_admin))
+
+    # Callbacks (must be before MessageHandler)
     application.add_handler(CallbackQueryHandler(callback_handler))
-    application.add_handler(MessageHandler(filters.PHOTO & ~filters.COMMAND, photo_handler))
+
+    # Photos
+    application.add_handler(MessageHandler(filters.PHOTO, photo_handler))
+
+    # Text messages
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, text_handler))
-    print("🤖 البوت المحسن شغال بنظام الإدارة المتقدم...")
-    application.run_polling()
+
+    print("🤖 Bot is starting...")
+    application.run_polling(allowed_updates=Update.ALL_TYPES)
+
 
 if __name__ == "__main__":
     main()
-
-# ==========================================
-# سيرفر الـ Webhook الداخلي
-# ==========================================
-from fastapi import FastAPI, Request
-import threading
-import uvicorn
-
-app_webhook = FastAPI()
-
-@app_webhook.post("/webhook")
-async def receive_sms_webhook(request: Request):
-    data = await request.json()
-    print(f"🔥 وصلت رسالة: {data}")
-    sender_phone = data.get("sender", "").strip()
-    amount_received = float(data.get("amount", 0))
-    message_body = data.get("message_body", "")
-    conn = sqlite3.connect("bot_database.db")
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT id, user_id, amount, phone_number FROM recharges
-        WHERE status = 'pending' AND (phone_number = ? OR ? LIKE '%' || phone_number || '%')
-    """, (sender_phone, message_body))
-    recharges = cursor.fetchall()
-    for recharge in recharges:
-        recharge_id, user_id, requested_amount, phone_num = recharge
-        if amount_received >= requested_amount:
-            cursor.execute("UPDATE recharges SET status = 'completed' WHERE id = ?", (recharge_id,))
-            cursor.execute("UPDATE users SET balance = balance + ? WHERE user_id = ?", (requested_amount, user_id))
-            conn.commit()
-            print(f"🎉 تم شحن رصيد المستخدم {user_id} بمبلغ {requested_amount}!")
-            success_msg = f"✅ <b>تم شحن رصيدك بنجاح!</b>\n💰 المبلغ: {requested_amount} ج.م"
-            try:
-                async with httpx.AsyncClient() as client:
-                    await client.post(
-                        f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
-                        json={"chat_id": user_id, "text": success_msg, "parse_mode": "HTML"}
-                    )
-            except Exception as e:
-                print(f"خطأ في إرسال رسالة: {e}")
-            break
-    conn.close()
-    return {"status": "success"}
-
-def run_server():
-    uvicorn.run(app_webhook, host="127.0.0.1", port=8000, log_level="info")
-
-threading.Thread(target=run_server, daemon=True).start()
-print("🚀 سيرفر الـ Webhook اشتغل بنجاح!")
-
-# ==========================================
-# سيرفر الـ Webhook المحسّن
-# ==========================================
-from fastapi import FastAPI, Request, HTTPException, Header
-from pydantic import BaseModel
-import threading
-import uvicorn
-from datetime import datetime
-
-WEBHOOK_SECRET = "TammSecret9"  # يجب أن يكون نفس API Key في تطبيق Flutter
-
-app_webhook = FastAPI(title="Tamm SMS Webhook")
-
-class SmsPayload(BaseModel):
-    sender: str
-    amount: float
-    message_body: str
-    timestamp: str
-
-@app_webhook.post("/webhook")
-async def receive_sms_webhook(
-    payload: SmsPayload,
-    x_api_key: str = Header(None)
-):
-    # التحقق من API Key
-    if x_api_key != WEBHOOK_SECRET:
-        logger.warning(f"⚠️ محاولة وصول غير مصرح بها من {payload.sender}")
-        raise HTTPException(status_code=401, detail="Unauthorized")
-
-    logger.info(f"🔥 رسالة SMS جديدة: {payload.sender} - {payload.amount} ج.م")
-
-    try:
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-
-        # البحث عن طلبات شحن معلقة تطابق رقم الهاتف والمبلغ
-        cursor.execute("""
-            SELECT r.id, r.user_id, r.amount, r.phone_number, u.username, u.first_name
-            FROM recharges r
-            JOIN users u ON r.user_id = u.user_id
-            WHERE r.status = 'pending' 
-            AND (r.phone_number = ? OR ? LIKE '%' || r.phone_number || '%')
-            AND r.amount <= ?
-            ORDER BY r.request_date ASC
-        """, (payload.sender, payload.message_body, payload.amount))
-
-        recharges = cursor.fetchall()
-
-        if not recharges:
-            logger.info(f"ℹ️ لا توجد طلبات شحن معلقة للرقم {payload.sender}")
-            conn.close()
-            return {"status": "no_matching_requests", "message": "No pending recharges found"}
-
-        processed_count = 0
-        total_amount_processed = 0
-
-        for recharge in recharges:
-            recharge_id, user_id, requested_amount, phone_num, username, first_name = recharge
-
-            # التحقق من أن المبلغ المستلم كافٍ
-            if payload.amount >= requested_amount:
-                # تحديث حالة الشحن
-                cursor.execute(
-                    "UPDATE recharges SET status = 'completed', admin_notes = ? WHERE id = ?",
-                    (f"تم الشحن تلقائياً عبر SMS - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", recharge_id)
-                )
-
-                # إضافة الرصيد للمستخدم
-                cursor.execute(
-                    "UPDATE users SET balance = balance + ? WHERE user_id = ?",
-                    (requested_amount, user_id)
-                )
-
-                conn.commit()
-                processed_count += 1
-                total_amount_processed += requested_amount
-
-                logger.info(f"✅ تم شحن رصيد المستخدم {user_id} ({username or first_name}) بمبلغ {requested_amount} ج.م")
-
-                # إرسال رسالة تأكيد للمستخدم عبر البوت
-                success_msg = f"""✅ <b>تم شحن رصيدك بنجاح!</b>
-
-💰 المبلغ: {requested_amount} ج.م
-📱 رقم الهاتف: {payload.sender}
-🆔 رقم العملية: #{recharge_id}
-
-شكراً لاستخدامك Tamm Store! 🎉"""
-
-                try:
-                    async with httpx.AsyncClient() as client:
-                        await client.post(
-                            f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
-                            json={
-                                "chat_id": user_id,
-                                "text": success_msg,
-                                "parse_mode": "HTML"
-                            },
-                            timeout=10.0
-                        )
-                except Exception as e:
-                    logger.error(f"❌ خطأ في إرسال رسالة التأكيد للمستخدم {user_id}: {e}")
-
-                # إرسال إشعار للأدمن
-                if ADMIN_IDS:
-                    admin_msg = f"""🔔 <b>عملية شحن تلقائية جديدة</b>
-
-👤 المستخدم: {username or first_name} (ID: {user_id})
-💰 المبلغ: {requested_amount} ج.م
-📱 الرقم المرسل: {payload.sender}
-🆔 رقم العملية: #{recharge_id}
-⏰ الوقت: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"""
-
-                    try:
-                        async with httpx.AsyncClient() as client:
-                            for admin_id in ADMIN_IDS:
-                                await client.post(
-                                    f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
-                                    json={
-                                        "chat_id": admin_id,
-                                        "text": admin_msg,
-                                        "parse_mode": "HTML"
-                                    },
-                                    timeout=10.0
-                                )
-                    except Exception as e:
-                        logger.error(f"❌ خطأ في إرسال إشعار للأدمن: {e}")
-
-        conn.close()
-
-        return {
-            "status": "success",
-            "processed": processed_count,
-            "total_amount": total_amount_processed,
-            "message": f"تم معالجة {processed_count} عملية شحن بنجاح"
-        }
-
-    except Exception as e:
-        logger.error(f"❌ خطأ في معالجة الـ webhook: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app_webhook.get("/health")
-async def health_check():
-    return {"status": "healthy", "timestamp": datetime.now().isoformat()}
-
-def run_webhook_server():
-    uvicorn.run(
-        app_webhook,
-        host="0.0.0.0",  # الاستماع على جميع الواجهات
-        port=8000,
-        log_level="info"
-    )
-
-# تشغيل السيرفر في thread منفصل
-webhook_thread = threading.Thread(target=run_webhook_server, daemon=True)
-webhook_thread.start()
-logger.info("🚀 سيرفر Webhook اشتغل على المنفذ 8000")
