@@ -4,3 +4,4 @@ requests
 python-dotenv
 nest_asyncio
 pytz
+google-auth
